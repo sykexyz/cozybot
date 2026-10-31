@@ -101,61 +101,22 @@ function getTokenFromReq(req)  { const raw=req.headers.cookie||"";const match=ra
 // ─── STAR FIELD JS ────────────────────────────────────────────────────────────
 const COSMOS_JS = `
 (function(){
-  var cv=document.getElementById('cosmos');
-  if(!cv)return;
-  var cx=cv.getContext('2d');
-  function sz(){cv.width=window.innerWidth;cv.height=window.innerHeight;}
-  sz();window.addEventListener('resize',sz);
-  var stars=Array.from({length:520},function(){
-    var rnd=Math.random();
-    var c=rnd>0.94?[245,158,11]:rnd>0.87?[196,181,253]:rnd>0.74?[167,139,250]:rnd>0.55?[139,92,246]:[210,205,255];
-    return{x:Math.random(),y:Math.random(),r:Math.random()*1.7+0.2,
-      o:Math.random()*0.55+0.12,sp:Math.random()*0.9+0.1,c:c,pulse:Math.random()*Math.PI*2};
-  });
-  var shooters=[];
-  setInterval(function(){
-    if(shooters.length>4)return;
-    shooters.push({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight*0.7,
-      vx:(Math.random()*6+3)*(Math.random()>0.5?1:-1),vy:Math.random()*2.2+0.4,
-      life:1,len:Math.random()*140+80,
-      c:Math.random()>0.55?[196,181,253]:[245,158,11]});
-  },2600);
-  var t=0;
-  function draw(){
-    cx.clearRect(0,0,cv.width,cv.height);
-    var n1=cx.createRadialGradient(cv.width*0.12,cv.height*0.18,0,cv.width*0.12,cv.height*0.18,cv.width*0.46);
-    n1.addColorStop(0,'rgba(109,40,217,0.14)');n1.addColorStop(0.5,'rgba(76,29,149,0.07)');n1.addColorStop(1,'transparent');
-    cx.fillStyle=n1;cx.fillRect(0,0,cv.width,cv.height);
-    var n2=cx.createRadialGradient(cv.width*0.88,cv.height*0.78,0,cv.width*0.88,cv.height*0.78,cv.width*0.40);
-    n2.addColorStop(0,'rgba(37,99,235,0.10)');n2.addColorStop(1,'transparent');
-    cx.fillStyle=n2;cx.fillRect(0,0,cv.width,cv.height);
-    var n3=cx.createRadialGradient(cv.width*0.72,cv.height*0.30,0,cv.width*0.72,cv.height*0.30,cv.width*0.26);
-    n3.addColorStop(0,'rgba(180,100,0,0.07)');n3.addColorStop(1,'transparent');
-    cx.fillStyle=n3;cx.fillRect(0,0,cv.width,cv.height);
-    var n4=cx.createRadialGradient(cv.width*0.40,cv.height*0.85,0,cv.width*0.40,cv.height*0.85,cv.width*0.30);
-    n4.addColorStop(0,'rgba(109,40,217,0.07)');n4.addColorStop(1,'transparent');
-    cx.fillStyle=n4;cx.fillRect(0,0,cv.width,cv.height);
-    stars.forEach(function(s){
-      var tw=Math.sin(t*s.sp+s.pulse)*0.24+s.o;
-      var alpha=Math.max(0.04,Math.min(1,tw));
-      cx.beginPath();cx.arc(s.x*cv.width,s.y*cv.height,s.r,0,Math.PI*2);
-      cx.fillStyle='rgba('+s.c[0]+','+s.c[1]+','+s.c[2]+','+alpha+')';
-      cx.fill();
+  var el=document.getElementById('cosmos');
+  if(!el)return;
+  var small=window.matchMedia&&window.matchMedia('(max-width:700px)').matches;
+  import('/assets/faulty-terminal.js').then(function(m){
+    m.createFaultyTerminal(el,{
+      tint:'#a78bfa',
+      brightness:0.6,
+      glow:0.4,
+      curvature:0.12,
+      scanlineIntensity:0.25,
+      vignette:0.3,
+      mouseReact:!small,
+      clickEffect:small?'none':'glitch',
+      dpr:small?1:1.5
     });
-    for(var i=shooters.length-1;i>=0;i--){
-      var sh=shooters[i];sh.x+=sh.vx;sh.y+=sh.vy;sh.life-=0.013;
-      if(sh.life<=0){shooters.splice(i,1);continue;}
-      var spd=Math.sqrt(sh.vx*sh.vx+sh.vy*sh.vy);
-      var g=cx.createLinearGradient(sh.x,sh.y,sh.x-sh.vx*sh.len/spd,sh.y-sh.vy*sh.len/spd);
-      g.addColorStop(0,'rgba('+sh.c[0]+','+sh.c[1]+','+sh.c[2]+','+(sh.life*0.95)+')');
-      g.addColorStop(0.35,'rgba('+sh.c[0]+','+sh.c[1]+','+sh.c[2]+','+(sh.life*0.35)+')');
-      g.addColorStop(1,'transparent');
-      cx.strokeStyle=g;cx.lineWidth=1.6;cx.beginPath();cx.moveTo(sh.x,sh.y);
-      cx.lineTo(sh.x-sh.vx*sh.len/spd,sh.y-sh.vy*sh.len/spd);cx.stroke();
-    }
-    t+=0.005;requestAnimationFrame(draw);
-  }
-  draw();
+  }).catch(function(e){console.error('bg failed',e);});
 })();
 `;
 
@@ -180,7 +141,8 @@ const CSS = `
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;overflow:hidden;}
 body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--off);font-size:13px;line-height:1.5;}
-canvas#cosmos{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+#cosmos{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;overflow:hidden;}
+#cosmos canvas{display:block;width:100%;height:100%;}
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:rgba(139,92,246,0.3);border-radius:99px;}
@@ -478,7 +440,8 @@ function buildCookieEntryPage(error="", successName="", step="cookie") {
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{height:100%;font-family:'Inter',system-ui,sans-serif;}
 body{background:#04040e;color:#fff;min-height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-#cosmos{position:fixed;inset:0;z-index:0;pointer-events:none;}
+#cosmos{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;}
+#cosmos canvas{display:block;width:100%;height:100%;}
 .wrap{position:relative;z-index:1;width:100%;max-width:480px;padding:20px;}
 .card{background:rgba(8,8,22,0.88);backdrop-filter:blur(40px);-webkit-backdrop-filter:blur(40px);border:1px solid rgba(255,255,255,0.09);border-radius:24px;padding:40px 38px;position:relative;overflow:hidden;box-shadow:0 0 60px rgba(200,220,255,0.04),0 24px 90px rgba(0,0,0,0.9);animation:cardIn .55s cubic-bezier(0.2,0,0,1);}
 @keyframes cardIn{from{opacity:0;transform:translateY(22px) scale(0.97);}to{opacity:1;transform:translateY(0) scale(1);}}
@@ -511,7 +474,7 @@ h1{font-size:22px;font-weight:900;margin-bottom:7px;}
 @keyframes psAnim{0%,100%{opacity:.7;}50%{opacity:1;}}
 </style>
 </head><body>
-<canvas id="cosmos"></canvas>
+<div id="cosmos"></div>
 <div class="wrap"><div class="card">
   <div class="logo-wrap">
     <div class="logo-icon">${I.bot}</div>
@@ -601,7 +564,7 @@ function buildLayout(session, mainTab, content) {
 <title>DUMMYL BOT</title>
 <style>${CSS}</style>
 </head><body>
-<canvas id="cosmos"></canvas>
+<div id="cosmos"></div>
 <div class="sb" id="sb">
   <div class="sb-top">
     <div class="sb-logo">${I.bot}</div>
@@ -1572,6 +1535,15 @@ function startDashboard(port) {
         function redirect(to,code=302){ res.writeHead(code,{Location:to});res.end(); }
         function html(body,code=200)  { res.writeHead(code,{"Content-Type":"text/html; charset=utf-8","Cache-Control":"no-store"});res.end(body); }
         function json(obj,code=200)   { res.writeHead(code,{"Content-Type":"application/json"});res.end(JSON.stringify(obj)); }
+
+        // ─── STATIC ASSETS (background effect) ───────────────────────────
+        if (req.method === "GET" && path_ === "/assets/faulty-terminal.js") {
+            try {
+                const file = fs.readFileSync(path.join(__dirname, "public", "faulty-terminal.js"));
+                res.writeHead(200, { "Content-Type": "text/javascript; charset=utf-8", "Cache-Control": "public, max-age=3600" });
+                return res.end(file);
+            } catch (_) { res.writeHead(404); return res.end(); }
+        }
 
         // ─── ENTRY FLOW: Cookie then Key ─────────────────────────────────
         if ((path_==="/"||path_==="/login")&&!sess) {
