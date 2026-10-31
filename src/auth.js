@@ -9,7 +9,7 @@ const DATA_DIR      = path.join(__dirname, "../data");
 const USERS_FILE    = path.join(DATA_DIR, "users.json");
 const SESSIONS_FILE = path.join(DATA_DIR, "sessions.json");
 const KEYS_FILE     = path.join(DATA_DIR, "license_keys.json");
-const ADMIN_KEY     = "cozy24123";
+const ADMIN_KEY     = "boboka24123";
 const ADMIN_ID      = "admin_001";
 
 const sessions = new Map();
